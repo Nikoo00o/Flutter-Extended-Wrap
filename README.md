@@ -4,7 +4,8 @@
 
 ### pubspec.yaml
 
-Update pubspec.yaml and add the following line to your dependencies.
+Update pubspec.yaml and add the following line to your dependencies to import the 
+[package](https://pub.dev/packages/flutter_extended_wrap) from pub.dev:
 
 ```yaml
 dependencies:
