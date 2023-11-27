@@ -1,8 +1,8 @@
 name: flutter_extended_wrap
-description: "A new Flutter package project."
+description: "A Flutter Plugin for better Wrap Alignment and Spacin."
 version: 0.0.1
 homepage: https://github.com/Nikoo00o/Flutter-Extended-Wrap
-publish_to: https://pub.dartlang.org
+repository: https://github.com/Nikoo00o/Flutter-Extended-Wrap
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
