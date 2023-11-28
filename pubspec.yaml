@@ -1,12 +1,11 @@
 name: flutter_extended_wrap
-description: "A Flutter Plugin for better Wrap Alignment and Spacin."
-version: 0.0.2
+description: "A Flutter Plugin to extend the default Wrap with more Alignment and Spacing Options."
+version: 0.0.3
 homepage: https://github.com/Nikoo00o/Flutter-Extended-Wrap
 repository: https://github.com/Nikoo00o/Flutter-Extended-Wrap
 
 environment:
-  sdk: '>=3.2.0 <4.0.0'
-  flutter: ">=1.17.0"
+  sdk: '>=2.17.0 <4.0.0'
 
 dependencies:
   flutter:

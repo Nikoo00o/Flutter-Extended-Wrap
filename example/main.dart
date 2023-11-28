@@ -18,11 +18,14 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(scrollBehavior: CustomScrollBehavior(), home: Scaffold(body: _buildBody()));
+    return MaterialApp(
+        scrollBehavior: CustomScrollBehavior(),
+        home: Scaffold(body: _buildBody()));
   }
 
   Widget _buildBody() {
-    final ScrollController controller = ScrollController(); // don't do this (bad practice)
+    final ScrollController controller =
+        ScrollController(); // don't do this (bad practice)
     return Scrollbar(
       thumbVisibility: true,
       controller: controller,
@@ -41,14 +44,14 @@ class App extends StatelessWidget {
       ExtendedWrap(
         childSizeInDirection: 40,
         spacing: 10,
-        extendedWrapAlignment: ExtendedWrapAlignment.spaceCenterOrAround,
+        extendedWrapAlignment: ExtendedWrapAlignment.spaceCenterOrAlignCenter,
         expandWrap: true,
         children: _createChildren(40, 40, Colors.blue, 8),
       ),
       ExtendedWrap(
         childSizeInDirection: 40,
         spacing: 10,
-        extendedWrapAlignment: ExtendedWrapAlignment.spaceCenterOrAround,
+        extendedWrapAlignment: ExtendedWrapAlignment.spaceCenterOrAlignCenter,
         expandWrap: true,
         children: _createChildren(40, 40, Colors.red, 7),
       ),
@@ -128,7 +131,8 @@ class App extends StatelessWidget {
     ];
   }
 
-  List<Widget> _createChildren(double width, double height, MaterialColor initialColor, int elementCount) {
+  List<Widget> _createChildren(double width, double height,
+      MaterialColor initialColor, int elementCount) {
     return List<Widget>.generate(elementCount, (int index) {
       return Container(
         width: width,

@@ -9,7 +9,7 @@ Update pubspec.yaml and add the following line to your dependencies to import th
 
 ```yaml
 dependencies:
-  flutter_extended_wrap: ^0.0.1
+  flutter_extended_wrap: ^0.0.3
 ```
 
 ## Import
@@ -26,11 +26,41 @@ With the extended Wrap you can automatically make a default Flutter Wrap expand 
 specify how many children a Wrap should put on each run. Additionally you have some options to customize where the free 
 space is put like for example placing the children on both sides with the free space in the center of the Wrap. 
 
-### Classes
+### Types
 
 ```dart
-class ExtendedWrap {/*...*/}
-class ExtendedWrapAlignment {/*...*/}
+class ExtendedWrap {
+  const ExtendedWrap({
+    super.key,
+    this.direction = Axis.horizontal,
+    this.extendedWrapAlignment = ExtendedWrapAlignment.center,
+    this.spacing = 0.0,
+    this.runSpacing = 0.0,
+    this.runAlignment = WrapAlignment.start,
+    this.crossAxisAlignment = WrapCrossAlignment.start,
+    this.textDirection,
+    this.verticalDirection = VerticalDirection.down,
+    this.clipBehavior = Clip.none,
+    required this.childSizeInDirection,
+    this.expandWrap = true,
+    this.desiredChildrenPerRun,
+    this.minFreeSpacePerRun = 0.0,
+    required this.children,
+  });
+}
+
+
+enum ExtendedWrapAlignment {
+  start,
+  end,
+  center,
+  spaceBetween,
+  spaceAround,
+  spaceEvenly,
+  spaceCenter,
+  spaceCenterOrAlignCenter,
+  spaceCenterAndAround
+}
 ```
 
 ## Usage

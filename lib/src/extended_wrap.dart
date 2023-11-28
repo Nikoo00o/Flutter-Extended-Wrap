@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_extended_wrap/src/extended_wrap_alignment.dart';
+import 'package:flutter_extended_wrap/src/run_count_result.dart';
 
 /// This is a wrapper around the default [Wrap] widget which provides the additional options to expand the wrap to
 /// the full size of the parent and either
@@ -116,8 +117,10 @@ class ExtendedWrap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-      final Widget wrap = _buildWrap(_isHorizontal ? constraints.maxWidth : constraints.maxHeight);
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      final Widget wrap = _buildWrap(
+          _isHorizontal ? constraints.maxWidth : constraints.maxHeight);
       return _expandWrap(wrap);
     });
   }
@@ -131,12 +134,17 @@ class ExtendedWrap extends StatelessWidget {
   }
 
   Widget _buildWrap(double wrapSizeInDirection) {
-    final int maxChildrenCountPerRun = getMaxChildrenCountPerRun(wrapSizeInDirection);
+    final int maxChildrenCountPerRun =
+        getMaxChildrenCountPerRun(wrapSizeInDirection);
     final int minRunCount = getMinRunCount(maxChildrenCountPerRun);
-    final (int actualChildrenPerRun, bool? additionalChildOnExistingRun) = getEqualChildrenPerRun(
+    final RunCountResult result = getEqualChildrenPerRun(
       maxChildrenCountPerRun: maxChildrenCountPerRun,
       minRunCount: minRunCount,
     );
+    final int actualChildrenPerRun = result.childrenPerRun;
+    final bool? additionalChildOnExistingRun =
+        result.additionalChildOnExistingRun;
+
     final int actualRunCount = getActualRunCount(
       actualChildrenPerRun: actualChildrenPerRun,
       additionalChildOnExistingRun: additionalChildOnExistingRun,
@@ -149,7 +157,8 @@ class ExtendedWrap extends StatelessWidget {
 
       late final int childrenCountOfRun;
       if (additionalChildOnExistingRun != null && isLastRun) {
-        childrenCountOfRun = additionalChildOnExistingRun ? actualChildrenPerRun + 1 : 1;
+        childrenCountOfRun =
+            additionalChildOnExistingRun ? actualChildrenPerRun + 1 : 1;
       } else {
         childrenCountOfRun = actualChildrenPerRun;
       }
@@ -157,8 +166,10 @@ class ExtendedWrap extends StatelessWidget {
 
       late final double freeSpaceInRun;
       if (expandWrap == true) {
-        freeSpaceInRun = getFreeSpaceInRun(wrapSizeInDirection, childrenCountOfRun) -
-            _getSpacingForAlignment(onlyOneRun: onlyOneRun, onlyOneChild: onlyOneChild);
+        freeSpaceInRun =
+            getFreeSpaceInRun(wrapSizeInDirection, childrenCountOfRun) -
+                _getSpacingForAlignment(
+                    onlyOneRun: onlyOneRun, onlyOneChild: onlyOneChild);
       } else {
         freeSpaceInRun = 0.0;
       }
@@ -201,49 +212,68 @@ class ExtendedWrap extends StatelessWidget {
 
       double freeSpaceBefore = 0.0;
       double freeSpaceAfter = 0.0;
+      ExtendedWrapAlignment alignmentToUse = extendedWrapAlignment;
+      if (alignmentToUse == ExtendedWrapAlignment.spaceCenterAndAround &&
+          freeSpaceInRun <= 0.001) {
+        alignmentToUse = ExtendedWrapAlignment.spaceCenter;
+        freeSpaceInRun += 2 * spacing;
+      }
 
       if (isFirstChildOfRun) {
-        if (extendedWrapAlignment == ExtendedWrapAlignment.end) {
+        if (alignmentToUse == ExtendedWrapAlignment.end) {
           freeSpaceBefore = freeSpaceInRun;
         } else if (_shouldPutSpaceAround(onlyOneRun: onlyOneRun)) {
           freeSpaceBefore = freeSpaceInRun / 2;
-        } else if (extendedWrapAlignment == ExtendedWrapAlignment.spaceAround) {
-          freeSpaceBefore = freeSpaceInRun / 2 / 2; // if there is not enough space for this, the layout will not be
-          // perfectly spaced!
+        } else if (alignmentToUse == ExtendedWrapAlignment.spaceAround) {
+          freeSpaceBefore = freeSpaceInRun / 2 / 2;
+          // if there is not enough space for this, the layout will not be perfectly spaced!
+        } else if (alignmentToUse ==
+            ExtendedWrapAlignment.spaceCenterAndAround) {
+          freeSpaceBefore = freeSpaceInRun / 3;
         }
       }
 
-      if (_shouldPutSpaceInCenter(onlyOneRun: onlyOneRun)) {
-        if (child == childrenCountOfRun / 2) {
+      if (child == childrenCountOfRun / 2) {
+        if (_shouldPutSpaceInCenter(onlyOneRun: onlyOneRun)) {
           freeSpaceBefore = freeSpaceInRun;
-        } else if (childrenCountOfRun == 1) {
-          freeSpaceBefore = freeSpaceInRun / 2; // special case if only one child
-          freeSpaceAfter = freeSpaceInRun / 2;
+        } else if (alignmentToUse ==
+            ExtendedWrapAlignment.spaceCenterAndAround) {
+          freeSpaceBefore = freeSpaceInRun / 3;
         }
+      } else if (childrenCountOfRun == 1 &&
+          _shouldPutSpaceInCenter(onlyOneRun: onlyOneRun)) {
+        freeSpaceBefore = freeSpaceInRun / 2; // special case if only one child
+        freeSpaceAfter = freeSpaceInRun / 2;
       }
 
       if (isLastChildOfRun) {
-        if (extendedWrapAlignment == ExtendedWrapAlignment.start) {
-          freeSpaceAfter = freeSpaceInRun; // if only 1 child, then its first and last!
+        if (alignmentToUse == ExtendedWrapAlignment.start) {
+          freeSpaceAfter =
+              freeSpaceInRun; // if only 1 child, then its first and last!
         } else if (_shouldPutSpaceAround(onlyOneRun: onlyOneRun)) {
           freeSpaceAfter = freeSpaceInRun / 2;
-        } else if (extendedWrapAlignment == ExtendedWrapAlignment.spaceAround) {
+        } else if (alignmentToUse == ExtendedWrapAlignment.spaceAround) {
           freeSpaceAfter = freeSpaceInRun / 2 / 2;
+        } else if (alignmentToUse ==
+            ExtendedWrapAlignment.spaceCenterAndAround) {
+          freeSpaceAfter = freeSpaceInRun / 3;
         }
       }
 
       // alignments between children
-      if (extendedWrapAlignment == ExtendedWrapAlignment.spaceBetween) {
+      if (alignmentToUse == ExtendedWrapAlignment.spaceBetween) {
         if (isFirstChildOfRun == false) {
           freeSpaceBefore = freeSpaceInRun / (childrenCountOfRun - 1) - spacing;
         }
-      } else if (extendedWrapAlignment == ExtendedWrapAlignment.spaceAround) {
+      } else if (alignmentToUse == ExtendedWrapAlignment.spaceAround) {
         if (isFirstChildOfRun == false) {
-          freeSpaceBefore = freeSpaceInRun / 2 / (childrenCountOfRun - 1) - spacing;
+          freeSpaceBefore =
+              freeSpaceInRun / 2 / (childrenCountOfRun - 1) - spacing;
         }
-      } else if (extendedWrapAlignment == ExtendedWrapAlignment.spaceEvenly) {
+      } else if (alignmentToUse == ExtendedWrapAlignment.spaceEvenly) {
         // also includes before and after children
-        final double spaceToUse = freeSpaceBefore = freeSpaceInRun / (childrenCountOfRun - 1 + 2) - spacing;
+        final double spaceToUse = freeSpaceBefore =
+            freeSpaceInRun / (childrenCountOfRun - 1 + 2) - spacing;
         freeSpaceBefore = spaceToUse;
         if (isLastChildOfRun) {
           freeSpaceAfter = spaceToUse;
@@ -265,16 +295,20 @@ class ExtendedWrap extends StatelessWidget {
   int getMaxChildrenCountPerRun(double wrapSizeInDirection) {
     double availableSpace = wrapSizeInDirection - minFreeSpacePerRun;
     if (availableSpace <= 0.001) {
-      assert(availableSpace > 0.001, "min free space per run is too big and will be ignored in release");
+      assert(availableSpace > 0.001,
+          "min free space per run is too big and will be ignored in release");
       availableSpace = wrapSizeInDirection;
     }
     int childrenPerRun = availableSpace ~/ (childSizeInDirection + spacing);
-    while (childrenPerRun * spacing + (childrenPerRun + 1) * childSizeInDirection <= availableSpace) {
+    while (childrenPerRun * spacing +
+            (childrenPerRun + 1) * childSizeInDirection <=
+        availableSpace) {
       childrenPerRun += 1;
     }
 
     if (childrenPerRun <= 0) {
-      assert(childrenPerRun > 0, "extended wrap does not have enough space for at least one child on each run");
+      assert(childrenPerRun > 0,
+          "extended wrap does not have enough space for at least one child on each run");
       return 1;
     }
     return childrenPerRun;
@@ -283,7 +317,8 @@ class ExtendedWrap extends StatelessWidget {
   /// Returns the number of runs that are needed to fit all [children].
   ///
   /// [maxChildrenCountPerRun] should be [getMaxChildrenCountPerRun]
-  int getMinRunCount(int maxChildrenCountPerRun) => (_childrenCount / maxChildrenCountPerRun).ceil();
+  int getMinRunCount(int maxChildrenCountPerRun) =>
+      (_childrenCount / maxChildrenCountPerRun).ceil();
 
   /// Returns the amount of children that are desired to be put into each run (not equally distributed yet) which
   /// will not be bigger than [maxChildrenCountPerRun] and [_childrenCount].
@@ -311,26 +346,41 @@ class ExtendedWrap extends StatelessWidget {
   /// [maxChildrenCountPerRun] should be [getMaxChildrenCountPerRun] and [minRunCount] should be [getMinRunCount]
   ///
   /// [childrenCountOverride] can be [_childrenCount] which is used when this method calls itself.
-  (int, bool?) getEqualChildrenPerRun({
+  RunCountResult getEqualChildrenPerRun({
     required int maxChildrenCountPerRun,
     required int minRunCount,
     int? childrenCountOverride,
   }) {
-    final int clampedChildrenPerRun = _clampDesiredChildrenPerRun(maxChildrenCountPerRun);
+    final int clampedChildrenPerRun =
+        _clampDesiredChildrenPerRun(maxChildrenCountPerRun);
     final int childrenCount = childrenCountOverride ?? _childrenCount;
     final bool wasPrime = childrenCountOverride != null;
-    final bool isSpaceCenter = extendedWrapAlignment == ExtendedWrapAlignment.spaceCenter ||
-        (extendedWrapAlignment == ExtendedWrapAlignment.spaceCenterOrAround && minRunCount == 1);
+    final bool isSpaceCenter =
+        extendedWrapAlignment == ExtendedWrapAlignment.spaceCenter ||
+            (extendedWrapAlignment ==
+                    ExtendedWrapAlignment.spaceCenterOrAlignCenter &&
+                minRunCount == 1);
     if (clampedChildrenPerRun == 1 || childrenCount == 3) {
-      return (1, null); // special case if only one child can fit on each run, or if there are
-      // only 3 children
+      // special case if only one child can fit on each run, or if there are only 3 children
+      return const RunCountResult(
+        childrenPerRun: 1,
+        additionalChildOnExistingRun: null,
+      );
     }
-    for (int desiredChildrenPerRun = clampedChildrenPerRun; desiredChildrenPerRun > 1; desiredChildrenPerRun--) {
-      if (childrenCount % desiredChildrenPerRun == 0 && (isSpaceCenter == false || desiredChildrenPerRun.isEven)) {
+    for (int desiredChildrenPerRun = clampedChildrenPerRun;
+        desiredChildrenPerRun > 1;
+        desiredChildrenPerRun--) {
+      if (childrenCount % desiredChildrenPerRun == 0 &&
+          (isSpaceCenter == false || desiredChildrenPerRun.isEven)) {
         final bool lastLineHasSpaceForElement =
-            desiredChildrenPerRun <= maxChildrenCountPerRun - 1 && isSpaceCenter == false;
-        return (desiredChildrenPerRun, wasPrime ? lastLineHasSpaceForElement : null); // try a lower amount of
-        // children per run until it is a divisor of the children count, but don't return 1!
+            desiredChildrenPerRun <= maxChildrenCountPerRun - 1 &&
+                isSpaceCenter == false;
+        // try a lower amount of children per run until it is a divisor of the children count, but don't return 1!
+        return RunCountResult(
+          childrenPerRun: desiredChildrenPerRun,
+          additionalChildOnExistingRun:
+              wasPrime ? lastLineHasSpaceForElement : null,
+        );
       }
     }
 
@@ -345,7 +395,9 @@ class ExtendedWrap extends StatelessWidget {
   /// children.
   ///
   /// [actualChildrenPerRun] and [additionalChildOnExistingRun] should be from [getEqualChildrenPerRun]
-  int getActualRunCount({required int actualChildrenPerRun, required bool? additionalChildOnExistingRun}) {
+  int getActualRunCount(
+      {required int actualChildrenPerRun,
+      required bool? additionalChildOnExistingRun}) {
     int count = _childrenCount ~/ actualChildrenPerRun;
     if (additionalChildOnExistingRun == false) {
       count += 1;
@@ -355,47 +407,69 @@ class ExtendedWrap extends StatelessWidget {
 
   /// Returns the available space in the run of [wrapSizeInDirection] size with [childrenAmount] children
   double getFreeSpaceInRun(double wrapSizeInDirection, int childrenAmount) {
-    final double requiredSpace = (childrenAmount - 1) * spacing + childrenAmount * childSizeInDirection;
+    final double requiredSpace =
+        (childrenAmount - 1) * spacing + childrenAmount * childSizeInDirection;
     return wrapSizeInDirection - requiredSpace;
   }
 
-  WrapAlignment _convertAlignment(ExtendedWrapAlignment extendedWrapAlignment) => switch (extendedWrapAlignment) {
-    ExtendedWrapAlignment.start => WrapAlignment.start,
-    ExtendedWrapAlignment.end => WrapAlignment.end,
-    ExtendedWrapAlignment.center => WrapAlignment.center,
-    ExtendedWrapAlignment.spaceBetween => WrapAlignment.spaceBetween,
-    ExtendedWrapAlignment.spaceAround => WrapAlignment.spaceAround,
-    ExtendedWrapAlignment.spaceEvenly => WrapAlignment.spaceEvenly,
-    ExtendedWrapAlignment.spaceCenter => WrapAlignment.spaceAround,
-    ExtendedWrapAlignment.spaceCenterOrAround => WrapAlignment.spaceAround,
-  };
+  WrapAlignment _convertAlignment(ExtendedWrapAlignment extendedWrapAlignment) {
+    switch (extendedWrapAlignment) {
+      case ExtendedWrapAlignment.start:
+        return WrapAlignment.start;
+      case ExtendedWrapAlignment.end:
+        return WrapAlignment.end;
+      case ExtendedWrapAlignment.center:
+        return WrapAlignment.center;
+      case ExtendedWrapAlignment.spaceBetween:
+        return WrapAlignment.spaceBetween;
+      case ExtendedWrapAlignment.spaceAround:
+        return WrapAlignment.spaceAround;
+      case ExtendedWrapAlignment.spaceEvenly:
+        return WrapAlignment.spaceEvenly;
+      case ExtendedWrapAlignment.spaceCenter:
+        return WrapAlignment.spaceAround;
+      case ExtendedWrapAlignment.spaceCenterOrAlignCenter:
+        return WrapAlignment.spaceAround;
+      case ExtendedWrapAlignment.spaceCenterAndAround:
+        return WrapAlignment.spaceAround;
+    }
+  }
 
   /// Checks the alignment for free space placement
   bool _shouldPutSpaceAround({required bool onlyOneRun}) =>
       extendedWrapAlignment == ExtendedWrapAlignment.center ||
-          (extendedWrapAlignment == ExtendedWrapAlignment.spaceCenterOrAround && onlyOneRun == false);
+      (extendedWrapAlignment ==
+              ExtendedWrapAlignment.spaceCenterOrAlignCenter &&
+          onlyOneRun == false);
 
   /// Checks the alignment for free space placement
   bool _shouldPutSpaceInCenter({required bool onlyOneRun}) =>
       extendedWrapAlignment == ExtendedWrapAlignment.spaceCenter ||
-          (extendedWrapAlignment == ExtendedWrapAlignment.spaceCenterOrAround && onlyOneRun);
+      (extendedWrapAlignment ==
+              ExtendedWrapAlignment.spaceCenterOrAlignCenter &&
+          onlyOneRun);
 
   /// Checks the alignment to see which spacing must be substracted from the free space, because the wrap will
   /// automatically add it
-  double _getSpacingForAlignment({required bool onlyOneRun, required bool onlyOneChild}) {
+  double _getSpacingForAlignment({
+    required bool onlyOneRun,
+    required bool onlyOneChild,
+  }) {
     switch (extendedWrapAlignment) {
       case ExtendedWrapAlignment.start:
       case ExtendedWrapAlignment.end:
         return spacing;
       case ExtendedWrapAlignment.spaceCenter:
-        return onlyOneChild? spacing * 2 : spacing;
+        return onlyOneChild ? spacing * 2 : spacing;
       case ExtendedWrapAlignment.center:
       case ExtendedWrapAlignment.spaceBetween:
       case ExtendedWrapAlignment.spaceAround:
       case ExtendedWrapAlignment.spaceEvenly:
         return spacing * 2;
-      case ExtendedWrapAlignment.spaceCenterOrAround:
+      case ExtendedWrapAlignment.spaceCenterOrAlignCenter:
         return onlyOneRun == false ? spacing * 2 : spacing;
+      case ExtendedWrapAlignment.spaceCenterAndAround:
+        return spacing * 4;
     }
   }
 
@@ -403,10 +477,12 @@ class ExtendedWrap extends StatelessWidget {
   /// [direction]
   Widget _wrapChild(int index) {
     if (index >= children.length) {
-      assert(index < children.length, "index is bigger than length of children");
+      assert(
+          index < children.length, "index is bigger than length of children");
       return const SizedBox();
     }
-    return _directionSizedBox(size: childSizeInDirection, child: children.elementAt(index));
+    return _directionSizedBox(
+        size: childSizeInDirection, child: children.elementAt(index));
   }
 
   Widget _directionSizedBox({required double size, Widget? child}) {

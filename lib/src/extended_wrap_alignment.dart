@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Contains the default options of [WrapAlignment],
-/// but also additionally [spaceCenter] and [spaceCenterOrAround]
+/// but also additionally [spaceCenter] and [spaceCenterOrAlignCenter]
 /// which can be used to align the children of an [ExtendedWrap] in the runs!
 enum ExtendedWrapAlignment {
   /// Place the objects as close to the start of the axis as possible like [WrapAlignment.start]
@@ -34,5 +34,11 @@ enum ExtendedWrapAlignment {
   ///
   /// But if some children would be put on the second run, then each run receives half of the children and the free
   /// space on both runs is put around the children elements instead like [center] does!
-  spaceCenterOrAround,
+  spaceCenterOrAlignCenter,
+
+  /// Places a third of the free space evenly between the center and both sides (start and end). So this is a
+  /// combination of the [spaceCenter] and [center] alignments.
+  ///
+  /// If there is not enough free space available, then [spaceCenter] will be used
+  spaceCenterAndAround
 }
